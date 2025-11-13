@@ -1,0 +1,227 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Festival Line-Up Manager — Group 7</title>
+  <style>
+    body {
+      background-color: #111;
+      color: white;
+      font-family: Arial, sans-serif;
+      margin: 0;
+      padding: 0;
+    }
+    header {
+      background: linear-gradient(90deg, #f01708, #000);
+      text-align: center;
+      padding: 15px;
+    }
+    h1 { letter-spacing: 2px; }
+    form {
+      margin: 20px auto;
+      text-align: center;
+    }
+    form input {
+      padding: 8px;
+      margin: 5px;
+      border-radius: 5px;
+      border: none;
+    }
+    button {
+      background: #f01708;
+      color: white;
+      border: none;
+      padding: 8px 12px;
+      border-radius: 5px;
+      cursor: pointer;
+      transition: 0.3s;
+    }
+    button:hover { background: #ff4b3e; }
+    button:disabled { opacity: 0.6; cursor: not-allowed; }
+    table {
+      width: 90%;
+      margin: 20px auto;
+      border-collapse: collapse;
+      background-color: rgba(255, 255, 255, 0.05);
+    }
+    th, td {
+      border: 1px solid #333;
+      padding: 8px;
+      text-align: center;
+    }
+    tr:hover { background-color: rgba(255, 255, 255, 0.1); }
+    tr.editing { background-color: rgba(255, 72, 62, 0.3); }
+    #message {
+      text-align: center;
+      margin-top: 10px;
+      font-weight: bold;
+    }
+    a {
+      color: #f01708;
+      text-decoration: none;
+      display: inline-block;
+      margin: 10px;
+    }
+    a:hover { color: white; }
+  </style>
+</head>
+<body>
+  <header>
+    <h1>🎶 Manage Festival Line-Up</h1>
+    <a href="index.html">← Back to Home</a>
+  </header>
+
+  <form id="lineupForm">
+    <input type="hidden" id="recordId" />
+    <input type="text" id="festival_name" placeholder="Festival Name" required />
+    <button id="addBtn">Add</button>
+    <button id="saveBtn" style="display:none;">Save</button>
+    <button id="cancelBtn" style="display:none;">Cancel</button>
+  </form>
+
+  <div id="message"></div>
+
+  <table id="lineupTbl">
+    <thead>
+      <tr>
+        <th>ID</th>
+        <th>Festival Name</th>
+        <th>Created At</th>
+        <th>Updated At</th>
+        <th>Actions</th>
+      </tr>
+    </thead>
+    <tbody></tbody>
+  </table>
+
+  <script>
+    const API = 'http://127.0.0.1:3000/api/lineup';
+    const tbody = document.querySelector('#lineupTbl tbody');
+    const form = document.getElementById('lineupForm');
+    const addBtn = document.getElementById('addBtn');
+    const saveBtn = document.getElementById('saveBtn');
+    const cancelBtn = document.getElementById('cancelBtn');
+    const recordId = document.getElementById('recordId');
+    const messageDiv = document.getElementById('message');
+    let editingRow = null;
+
+    function showMessage(msg, success = true) {
+      messageDiv.textContent = msg;
+      messageDiv.style.color = success ? '#00ff7f' : '#ff4b3e';
+      setTimeout(() => messageDiv.textContent = '', 3000);
+    }
+
+    async function loadItems() {
+      const res = await fetch(API);
+      const data = await res.json();
+      tbody.innerHTML = '';
+      data.forEach(row => {
+        const tr = document.createElement('tr');
+        tr.dataset.id = row.id;
+        tr.innerHTML = `
+          <td>${row.id}</td>
+          <td>${row.festival_name}</td>
+          <td>${row.created_at}</td>
+          <td>${row.updated_at}</td>
+          <td>
+            <button onclick="editItem(${row.id})">Edit</button>
+            <button onclick="deleteItem(${row.id}, this)">Delete</button>
+          </td>`;
+        tbody.appendChild(tr);
+      });
+    }
+
+    async function addItem() {
+      addBtn.disabled = true;
+      const data = getFormData();
+      try {
+        const res = await fetch(API, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify(data)
+        });
+        if (res.ok) {
+          form.reset();
+          showMessage('Festival added successfully!');
+          loadItems();
+        } else showMessage('Create failed', false);
+      } catch (err) {
+        showMessage('Network error', false);
+      }
+      addBtn.disabled = false;
+    }
+
+    async function editItem(id) {
+      const res = await fetch(`${API}/${id}`);
+      const row = await res.json();
+      recordId.value = id;
+      document.getElementById('festival_name').value = row.festival_name;
+      addBtn.style.display = 'none';
+      saveBtn.style.display = 'inline';
+      cancelBtn.style.display = 'inline';
+
+      // Highlight the editing row
+      if (editingRow) editingRow.classList.remove('editing');
+      editingRow = document.querySelector(`tr[data-id='${id}']`);
+      if (editingRow) editingRow.classList.add('editing');
+    }
+
+    async function saveItem() {
+      saveBtn.disabled = true;
+      const id = recordId.value;
+      const data = getFormData();
+      try {
+        const res = await fetch(`${API}/${id}`, {
+          method: 'PUT',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify(data)
+        });
+        if (res.ok) {
+          resetForm();
+          showMessage('Festival updated successfully!');
+          loadItems();
+        } else showMessage('Update failed', false);
+      } catch (err) {
+        showMessage('Network error', false);
+      }
+      saveBtn.disabled = false;
+    }
+
+    async function deleteItem(id, btn) {
+      if (!confirm('Delete this record?')) return;
+      btn.disabled = true;
+      try {
+        const res = await fetch(`${API}/${id}`, { method: 'DELETE' });
+        if (res.status === 204) {
+          showMessage('Festival deleted successfully!');
+          loadItems();
+        } else showMessage('Delete failed', false);
+      } catch (err) {
+        showMessage('Network error', false);
+      }
+      btn.disabled = false;
+    }
+
+    function getFormData() {
+      return { festival_name: document.getElementById('festival_name').value };
+    }
+
+    function resetForm() {
+      form.reset();
+      recordId.value = '';
+      addBtn.style.display = 'inline';
+      saveBtn.style.display = 'none';
+      cancelBtn.style.display = 'none';
+      if (editingRow) editingRow.classList.remove('editing');
+      editingRow = null;
+    }
+
+    addBtn.onclick = e => { e.preventDefault(); addItem(); };
+    saveBtn.onclick = e => { e.preventDefault(); saveItem(); };
+    cancelBtn.onclick = e => { e.preventDefault(); resetForm(); };
+
+    loadItems();
+  </script>
+</body>
+</html>

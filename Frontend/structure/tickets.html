@@ -1,0 +1,149 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width,initial-scale=1">
+    <title>Buy Tickets — Mulungushi Music Festival</title>
+    <style>
+      :root{--bg:#f6f8fb;--surface:#fff;--text:#04122a;--muted:#6b7280;--accent:#ff4d6d}
+      body{font-family:system-ui,-apple-system,Segoe UI,Roboto,Arial;margin:0;padding:18px;background:var(--bg);color:var(--text)}
+      .container{max-width:720px;margin:18px auto;background:var(--surface);padding:18px;border-radius:10px;box-shadow:0 8px 30px rgba(2,6,23,0.06)}
+      h1{margin-top:0}
+      .packs{display:grid;grid-template-columns:1fr 1fr;gap:12px}
+      .pack{border:1px solid rgba(230,238,248,0.8);padding:12px;border-radius:8px}
+      .pack h3{margin:0 0 8px}
+      .actions{display:flex;gap:8px;align-items:center;margin-top:12px}
+      .btn{background:var(--accent);color:#fff;padding:10px 12px;border-radius:8px;text-decoration:none;border:none;cursor:pointer}
+      .muted{color:var(--muted)}
+      label{display:block;margin-top:10px}
+      input[type=text],input[type=email]{width:100%;padding:8px;margin-top:6px;border-radius:6px;border:1px solid #ddd}
+    </style>
+  </head>
+  <body>
+    <div class="container">
+      <h1>Buy Tickets</h1>
+      <p class="muted">Choose a ticket package and complete a quick test purchase. This demo simulates payment and creates a downloadable ticket file.</p>
+
+      <div class="packs">
+        <div class="pack">
+          <h3>General Admission</h3>
+          <div>Access to all stages • Standing</div>
+          <div style="margin-top:8px;font-weight:700">K100</div>
+          <div style="margin-top:8px"><label><input type="radio" name="pack" value="General Admission|100" checked> Select</label></div>
+        </div>
+        <div class="pack">
+          <h3>VIP Pass</h3>
+          <div>Access + VIP area + free drink</div>
+          <div style="margin-top:8px;font-weight:700">K300</div>
+          <div style="margin-top:8px"><label><input type="radio" name="pack" value="VIP Pass|300"> Select</label></div>
+        </div>
+      </div>
+
+      <form id="buyForm" onsubmit="return buyTicket(event)" style="margin-top:14px">
+        <label for="fullname">Full name</label>
+        <input id="fullname" name="fullname" required>
+
+        <label for="email">Email</label>
+        <input id="email" name="email" type="email" required>
+
+        <div class="actions">
+          <button class="btn" type="submit">Pay & Get Ticket</button>
+          <div id="status" class="muted"> </div>
+        </div>
+      </form>
+
+      <div id="result" style="margin-top:14px"></div>
+    </div>
+
+    <!-- libraries: jsPDF, QRious, JsBarcode -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/qrious/4.0.2/qrious.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/jsbarcode@3.11.5/dist/JsBarcode.all.min.js"></script>
+
+    <script>
+      // ticket generation flow: validate -> simulate payment -> generate PDF with QR and high-resolution barcode
+      (function(){
+        const $ = (s) => document.querySelector(s);
+
+        async function buyTicket(e){
+          e.preventDefault();
+          const name = $('#fullname').value.trim();
+          const email = $('#email').value.trim();
+          const pack = document.querySelector('input[name="pack"]:checked').value.split('|');
+          const packName = pack[0], amount = pack[1];
+          const status = $('#status'), result = $('#result');
+          status.textContent = 'Processing...';
+
+          // simulate a short payment delay
+          setTimeout(async ()=>{
+            status.textContent = '';
+            const id = 'T-' + Date.now();
+
+            const { jsPDF } = window.jspdf;
+            const doc = new jsPDF({ unit: 'pt', format: 'a4' });
+            const L = 40;
+
+            // header band
+            doc.setFillColor(8,18,41);
+            doc.rect(0,0,595,110,'F');
+            doc.setFontSize(18);
+            doc.setTextColor(255);
+            doc.text('Mulungushi Music Festival', L, 40);
+            doc.setFontSize(11);
+            doc.text('Oct 1–3, 2025', L, 60);
+            doc.setDrawColor(220);
+            doc.line(L,120,555,120);
+
+            // ticket body
+            doc.setTextColor(4,18,42);
+            doc.setFontSize(12);
+            doc.text(`Ticket: ${id}`, L, 150);
+            doc.setFontSize(14);
+            doc.text(packName, L, 175);
+            doc.setFontSize(12);
+            doc.text(`Name: ${name}`, L, 195);
+            doc.text(`Email: ${email}`, L, 215);
+            doc.text(`Paid: K${amount}`, L, 235);
+
+            // QR code (client-side)
+            const qr = new QRious({ value: id, size: 360 });
+            const qrData = qr.toDataURL();
+            doc.addImage(qrData, 'PNG', 420, 150, 160, 160);
+
+            // Render a high-resolution barcode to a canvas and embed as PNG for better print quality
+            const canvas = document.createElement('canvas');
+            const targetW = 900, targetH = 200, scale = 3;
+            canvas.width = targetW * scale; canvas.height = targetH * scale;
+            const ctx = canvas.getContext('2d'); ctx.scale(scale, scale);
+            JsBarcode(canvas, id, { format: 'CODE128', displayValue: true, fontSize: 30, height: 120, margin: 20 });
+            const barcodeData = canvas.toDataURL('image/png');
+            doc.addImage(barcodeData, 'PNG', L, 320, 480, 90);
+            canvas.remove();
+
+            doc.setFontSize(9); doc.setTextColor(110);
+            doc.text('Show this ticket (printed or phone) at the gate.', L, 420);
+
+            // attempt to embed a local logo (optional)
+            try{
+              const resp = await fetch('mulungushi-logo.png');
+              if(resp.ok){
+                const blob = await resp.blob();
+                const dataUrl = await new Promise((resolve)=>{ const r = new FileReader(); r.onload = () => resolve(r.result); r.readAsDataURL(blob); });
+                doc.addImage(dataUrl, 'PNG', 480, 20, 70, 70);
+              }
+            }catch(err){ /* ignore if missing */ }
+
+            const blob = doc.output('blob');
+            const url = URL.createObjectURL(blob);
+            result.innerHTML = `<p>Payment successful — your ticket is ready.</p><p><a href="${url}" download="ticket-${id}.pdf" class="btn">Download PDF Ticket</a></p>`;
+            $('#buyForm').reset();
+          }, 1000);
+
+          return false;
+        }
+
+        window.buyTicket = buyTicket;
+      })();
+    </script>
+  </body>
+</html>

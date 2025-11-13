@@ -1,0 +1,185 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Mulungushi University Music Festival — Group 7</title>
+
+  <style>
+    body {
+      font-family: Arial, sans-serif;
+      background-image: url('/Media/back3.jpg');
+      background-size: cover;
+      background-repeat: no-repeat;
+      background-attachment: fixed;
+      background-position: center;
+      color: rgb(255, 255, 255);
+      margin: 0;
+    }
+
+    header {
+      background: repeating-linear-gradient(
+        45deg,
+        #000000,
+        #f01708 20px,
+        #000000 20px,
+        #000000f8 40px
+      );
+      padding: 15px;
+      text-align: center;
+    }
+
+    h2 {
+      color: #ffffff;
+      letter-spacing: 2px;
+    }
+
+    table {
+      border-collapse: collapse;
+      width: 80%;
+      margin: 20px auto;
+    }
+
+    th, td {
+      border: 1px solid #0c0c0c;
+      padding: 8px;
+      text-align: center;
+    }
+
+    tr:nth-child(even) {
+      background-color: #252323;
+    }
+
+    nav {
+      background-color: #777b80;
+      text-align: center;
+      padding: 10px;
+    }
+
+    nav a {
+      color: #0c3df0;
+      margin: 0 15px;
+      text-decoration: none;
+      font-size: 18px;
+    }
+
+    nav a:hover {
+      color: rgb(255, 255, 255);
+    }
+
+    #poster-media {
+      display: flex;
+      justify-content: space-around;
+      align-items: flex-start;
+      gap: 20px;
+      margin: 20px;
+    }
+
+    footer {
+      background-color: #222;
+      color: #fff;
+      text-align: center;
+      padding: 15px;
+    }
+
+    button {
+      width: 100px;
+      font-family: Verdana, Geneva, Tahoma, sans-serif;
+      font-size: large;
+      margin-left: 60px;
+      border-radius: 5px;
+      border: none;
+    }
+  </style>
+</head>
+
+<body>
+  <header>
+    <marquee behavior="scroll" direction="left">
+      🎵 Mulungushi University Music Festival — 20th–22nd November 2025 🎵
+    </marquee>
+  </header>
+
+  <nav>
+    <a href="#lineup">Line-Up</a>
+    <a href="#schedule">Schedule</a>
+    <a href="#newsletter">Newsletter</a>
+    <a href="lineup.html">Manage Line-Up</a> <!-- 🔗 CRUD page link -->
+    <a href="tickets.html" target="_blank">Buy Tickets</a>
+  </nav>
+
+  <main>
+    <section id="lineup">
+      <h2>Headline Artists</h2>
+      <ol>
+        <li>Mampi</li>
+        <li>Blood Kid</li>
+        <li>Dizo West</li>
+        <li>Jea Cash</li>
+        <li>Chef 187</li>
+        <li>Yo Maps</li>
+      </ol>
+    </section>
+
+    <section id="schedule">
+      <h2>Festival Schedule</h2>
+      <table>
+        <tr style="background-color: #2b1169;">
+          <th>Stage</th>
+          <th>Artist</th>
+          <th>Start Time</th>
+        </tr>
+        <tr><td>Graduation Square</td><td>Mampi</td><td>17:00</td></tr>
+        <tr><td>Graduation Square</td><td>Blood Kid</td><td>18:00</td></tr>
+        <tr><td>Graduation Square</td><td>Dizo West</td><td>19:00</td></tr>
+        <tr><td>Graduation Square</td><td>Jea Cash</td><td>20:00</td></tr>
+        <tr><td>Graduation Square</td><td>Chef 187</td><td>21:00</td></tr>
+        <tr><td>Graduation Square</td><td>Yo Maps</td><td>22:00</td></tr>
+      </table>
+    </section>
+
+    <section id="poster-media">
+      <section id="poster">
+        <h2 align="center">Festival Poster</h2>
+        <figure>
+          <img src="/Media/IMG-20251008-WA0127.jpg" alt="Mulungushi University Music Festival Poster" width="400" />
+          <figcaption>Mulungushi University Music Festival 2025 Official Poster</figcaption>
+        </figure>
+      </section>
+
+      <section id="media">
+        <h2 align="center">Festival Media</h2>
+        <h3>Intro Video</h3>
+        <video width="400" controls poster="poster.jpg">
+          <source src="/Media/VID-20251008-WA0133.mp4" type="video/mp4" />
+          <source src="/Media/Notice.mp3.opus" type="video/webm" />
+          your web browser does not support this video format
+        </video>
+
+        <h3>Host Audio </h3>
+        <audio controls>
+          <source src="/Media/Notice.mp3.opus" type="audio/ogg; codecs=opus" />
+          <source src="bumper.ogg" type="audio/ogg" />
+          your web browser does not support this audio format
+        </audio>
+        <p><em>Audio summary:</em> Quick voice-over inviting guests to the Mulungushi Music Festival.</p>
+      </section>
+    </section>
+
+    <section id="newsletter">
+      <h2>Join Our Newsletter</h2>
+      <form>
+        <label>Name:</label>
+        <input type="text" name="Enter Name" required /><br /><br />
+        <label>Email:</label>
+        <input type="email" name="artisturl" placeholder="Username@gmail.com" /><br /><br />
+        <button>Subscribe</button>
+      </form>
+    </section>
+  </main>
+
+  <footer>
+    <p>© 2025 Group 7 — Mulungushi University ICT251 Web Technologies Project</p>
+  </footer>
+</body>
+</html>
